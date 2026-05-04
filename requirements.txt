@@ -1,0 +1,12 @@
+biopython
+hdbscan
+matplotlib
+numpy
+pandas
+plotly
+scikit-learn
+scipy
+seaborn
+torch
+transformers
+umap-learn
