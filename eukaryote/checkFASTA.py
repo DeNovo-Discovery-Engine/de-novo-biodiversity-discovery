@@ -4,23 +4,29 @@ import plotly.graph_objects as go
 import umap
 import hdbscan
 from Bio import SeqIO
+from pathlib import Path
 
-ref_cluster_file = "/eukaryote/output/combined_clusters.csv"
+# Get parent directory (de-novo-biodiversity-discovery-main)
+PARENT_DIR = Path(__file__).resolve().parent.parent
+EUKARYOTE_DIR = PARENT_DIR / "eukaryote"
+RIBOSOME_DIR = PARENT_DIR / "ribosome_RNA"
 
-embeddings_16S_file = "/ribosome_RNA/data/16S_embeddings_2k.npy"
-embeddings_euk_file = "/eukaryote/data/SSU_eukaryote_embeddings.npy"
+ref_cluster_file = EUKARYOTE_DIR / "output" / "combined_clusters.csv"
 
-headers_16S_file = "/ribosome_RNA/data/16S_kmers_fullheader.txt"
-headers_euk_file = "/eukaryote/data/SSU_eukaryote_rRNA.txt"
+embeddings_16S_file = RIBOSOME_DIR / "data" / "16S_embeddings_2k.npy"
+embeddings_euk_file = EUKARYOTE_DIR / "data" / "SSU_eukaryote_embeddings.npy"
 
-query_fasta_file = "/ribosome_RNA/data/new_sequences.fasta"
-output_csv = "/eukaryote/output/query_only_cluster_assignment.csv"
+headers_16S_file = RIBOSOME_DIR / "data" / "16S_kmers_fullheader.txt"
+headers_euk_file = EUKARYOTE_DIR / "data" / "SSU_eukaryote_rRNA.txt"
 
-emb_16S = np.load(embeddings_16S_file)
-emb_euk = np.load(embeddings_euk_file)
+query_fasta_file = RIBOSOME_DIR / "data" / "new_sequences.fasta"
+output_csv = EUKARYOTE_DIR / "output" / "query_only_cluster_assignment.csv"
 
-headers_16S = [line.strip()[1:] for line in open(headers_16S_file) if line.startswith(">")]
-headers_euk = [line.strip()[1:] for line in open(headers_euk_file) if line.startswith(">")]
+emb_16S = np.load(str(embeddings_16S_file))
+emb_euk = np.load(str(embeddings_euk_file))
+
+headers_16S = [line.strip()[1:] for line in open(str(headers_16S_file)) if line.startswith(">")]
+headers_euk = [line.strip()[1:] for line in open(str(headers_euk_file)) if line.startswith(">")]
 
 headers_16S = headers_16S[:emb_16S.shape[0]]
 headers_euk = headers_euk[:emb_euk.shape[0]]
@@ -31,10 +37,10 @@ ref_sources = ["16S"] * len(headers_16S) + ["Eukaryote"] * len(headers_euk)
 
 print("Reference embeddings shape:", ref_embeddings.shape)
 
-ref_clusters = pd.read_csv(ref_cluster_file)
+ref_clusters = pd.read_csv(str(ref_cluster_file))
 assert len(ref_clusters) == len(ref_embeddings), "Mismatch between clusters and embeddings!"
 
-query_headers = [rec.id for rec in SeqIO.parse(query_fasta_file, "fasta")]
+query_headers = [rec.id for rec in SeqIO.parse(str(query_fasta_file), "fasta")]
 query_embeddings = np.random.normal(size=(len(query_headers), ref_embeddings.shape[1]))
 
 print("Query sequences loaded:", len(query_headers))
@@ -49,7 +55,7 @@ query_df = pd.DataFrame({
     "Assigned_Cluster": query_labels,
     "Probability": strengths
 })
-query_df.to_csv(output_csv, index=False)
+query_df.to_csv(str(output_csv), index=False)
 print(f"Query cluster assignments saved to {output_csv}")
 
 umap_3d = umap.UMAP(n_neighbors=30, min_dist=0.05, n_components=3, random_state=42)

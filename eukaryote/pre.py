@@ -1,9 +1,14 @@
 from Bio import SeqIO
 import os
+from pathlib import Path
 
-fasta_file = "/eukaryote/data/SSU_eukaryote_rRNA.fasta"
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / "data"
+DATA_DIR.mkdir(exist_ok=True)
+
+fasta_file = DATA_DIR / "SSU_eukaryote_rRNA.fasta"
 k = 6
-output_file = "/eukaryote/data/SSU_eukaryote_rRNA.txt"
+output_file = DATA_DIR / "SSU_eukaryote_rRNA.txt"
 
 def get_kmers(sequence, k=6):
     sequence = sequence.upper()
@@ -20,7 +25,7 @@ print(f"Processed {len(all_kmers_per_seq)} sequences")
 total_kmers = sum(len(km[1]) for km in all_kmers_per_seq)
 print(f"Total k-mers generated: {total_kmers}")
 
-with open(output_file, "w") as f:
+with open(str(output_file), "w") as f:
     for full_header, kmers in all_kmers_per_seq:
         if kmers:
             f.write(f">{full_header}\n")

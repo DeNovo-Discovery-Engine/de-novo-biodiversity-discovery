@@ -1,13 +1,18 @@
 import torch
 from transformers import BertTokenizer, BertModel
 import numpy as np
+from pathlib import Path
 
-kmer_file = "/eukaryote/data/SSU_eukaryote_rRNA.txt"
-num_sequences = 5000
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / "data"
+DATA_DIR.mkdir(exist_ok=True)
+
+kmer_file = DATA_DIR / "SSU_eukaryote_rRNA.txt"
+num_sequences = 5000  # Adjust if your dataset has more/fewer sequences
 batch_size = 64
 window_size = 512
 step = 256
-output_file = "/eukaryote/data/SSU_eukaryote_embeddings.npy"
+output_file = DATA_DIR / "SSU_eukaryote_embeddings.npy"
 
 tokenizer = BertTokenizer.from_pretrained("armheb/DNA_bert_6")
 model = BertModel.from_pretrained("armheb/DNA_bert_6")
@@ -18,7 +23,7 @@ model.to(device)
 sequences = []
 headers = []
 
-with open(kmer_file, "r") as f:
+with open(str(kmer_file), "r") as f:
     current_header = ""
     count = 0
     for line in f:
@@ -61,6 +66,6 @@ for idx, (seq_kmers, header) in enumerate(zip(sequences, headers), start=1):
         print(f"{idx} embeddings generated...")
 
 embeddings_array = np.stack(all_embeddings)
-np.save(output_file, embeddings_array)
+np.save(str(output_file), embeddings_array)
 print(f"Embeddings saved to {output_file}")
 print(f"Total sequences embedded: {len(all_embeddings)}")

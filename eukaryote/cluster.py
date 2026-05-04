@@ -3,21 +3,27 @@ import umap
 import hdbscan
 import matplotlib.pyplot as plt
 import pandas as pd
+from pathlib import Path
 
-embeddings_file = "/eukaryote/data/SSU_eukaryote_embeddings.npy"
-kmer_file = "/eukaryote/data/SSU_eukaryote_rRNA.txt"
-output_clusters_csv = "/eukaryote/output/SSU_eukaryote_hdbscan.csv"
-output_novel_csv = "/eukaryote/output/SSU_potential_novel.csv"
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / "data"
+OUTPUT_DIR = BASE_DIR / "output"
+OUTPUT_DIR.mkdir(exist_ok=True)
+
+embeddings_file = DATA_DIR / "SSU_eukaryote_embeddings.npy"
+kmer_file = DATA_DIR / "SSU_eukaryote_rRNA.txt"
+output_clusters_csv = OUTPUT_DIR / "SSU_eukaryote_hdbscan.csv"
+output_novel_csv = OUTPUT_DIR / "SSU_potential_novel.csv"
 
 min_cluster_size = 35
 min_samples = 8
 umap_neighbors = 30
 umap_min_dist = 0.05
 
-embeddings = np.load(embeddings_file)
+embeddings = np.load(str(embeddings_file))
 print("Embeddings loaded:", embeddings.shape)
 
-headers = [line.strip()[1:] for line in open(kmer_file) if line.startswith(">")]
+headers = [line.strip()[1:] for line in open(str(kmer_file)) if line.startswith(">")]
 headers = headers[:embeddings.shape[0]]
 
 clusterer = hdbscan.HDBSCAN(
@@ -38,11 +44,11 @@ cluster_df = pd.DataFrame({
     "Cluster": cluster_labels,
     "Confidence": probabilities
 })
-cluster_df.to_csv(output_clusters_csv, index=False)
+cluster_df.to_csv(str(output_clusters_csv), index=False)
 print(f"Cluster assignments saved to {output_clusters_csv}")
 
 novel_df = cluster_df[cluster_df["Cluster"] == -1]
-novel_df.to_csv(output_novel_csv, index=False)
+novel_df.to_csv(str(output_novel_csv), index=False)
 print(f"Potential novel taxa saved to {output_novel_csv}")
 
 reducer = umap.UMAP(
